@@ -84,7 +84,7 @@ const getRandomVideos = async () => {
 };
 
 const startCron = (ctx: Context) => {
-  const task = cron.schedule("0 9 * * *", async () => {
+  const task = cron.schedule("0 7 * * *", async () => {
     const links = await getRandomVideos();
     links.forEach((link, idx) => {
       console.log(
