@@ -15,7 +15,7 @@ const redis = new Redis({
   password: process.env.REDIS_PW,
 });
 
-let tasks: { chatId: string; task: ScheduledTask }[] = [];
+const tasks: { chatId: string; task: ScheduledTask }[] = [];
 
 const playlists = [
   "PLnBhm4gyqDGAV-BESRro-tQ5JDhWuV8SE",
@@ -133,6 +133,11 @@ bot.start(async (ctx) => {
   ctx.reply("Привет, любимая. Надеюсь, это сработает...");
   const links = await getRandomVideos();
   links.forEach((link, idx) => {
+    console.log(
+      `${link.link.split("v=")[1]}_${link.playlistId}_${
+        ctx.message.message_id
+      }_${idx + 1}`
+    );
     ctx.reply(`${idx + 1}#: ${link.link}`, {
       reply_markup: {
         inline_keyboard: [
@@ -140,8 +145,8 @@ bot.start(async (ctx) => {
             {
               text: "Другое Видео",
               callback_data: `${link.link.split("v=")[1]}_${link.playlistId}_${
-                ctx.message.message_id
-              }_${idx + 1}`,
+                idx + 1
+              }`,
             },
           ],
         ],
@@ -156,6 +161,8 @@ bot.action(/([a-zA-Z0-9_]+)[_]([a-zA-Z0-9-]+)[_]([0-9]+)/, async (ctx) => {
   const videoId = ctx.match[1];
   const playlistId = ctx.match[2];
   const videoIdx = ctx.match[3];
+
+  console.log(ctx);
 
   const videoLink = await getRandomVideoFromPlayList(playlistId, videoId);
   ctx.reply(`${+videoIdx}#: ${videoLink.link}`, {
@@ -198,10 +205,6 @@ bot.command("refresh", async (ctx) => {
 });
 bot.command("quit", async (ctx) => {
   // Using context shortcut
-  await redis.del(ctx.chat.id.toString());
-  const taskToStop = tasks.find((t) => t.chatId !== ctx.chat.id.toString());
-  taskToStop.task.stop();
-  tasks = tasks.filter((t) => t.chatId !== ctx.chat.id.toString());
   ctx.leaveChat();
 });
 
